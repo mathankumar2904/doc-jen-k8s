@@ -2,10 +2,9 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('mathan2904')
+        DOCKERHUB = credentials('mathan2904')
         IMAGE_NAME = "mathan2904/simple-web-app"
         IMAGE_TAG = "latest"
-        KUBE_CONFIG = "/home/jenkins/.kube/config"
     }
 
     stages {
@@ -18,29 +17,24 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                bat """
+                    docker build -t %IMAGE_NAME%:%IMAGE_TAG% .
+                """
             }
         }
 
         stage('Docker Login') {
             steps {
-                sh """
-                    echo ${DOCKERHUB_CREDENTIALS_PSW} | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
+                bat """
+                    echo %DOCKERHUB_PSW% | docker login -u %DOCKERHUB_USR% --password-stdin
                 """
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                sh "docker push ${IMAGE_NAME}:${IMAGE_TAG}"
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                sh """
-                    export KUBECONFIG=${KUBE_CONFIG}
-                    kubectl apply -f k8s-deployment.yaml
+                bat """
+                    docker push %IMAGE_NAME%:%IMAGE_TAG%
                 """
             }
         }
@@ -48,7 +42,7 @@ pipeline {
 
     post {
         always {
-            sh "docker system prune -f"
+            bat "docker system prune -f"
         }
     }
 }
