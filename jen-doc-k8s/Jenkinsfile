@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "mathan2904/simple-web-app"
+        IMAGE_TAG  = "latest"
+    }
+
     stages {
 
         stage('Checkout') {
@@ -11,12 +16,24 @@ pipeline {
 
         stage('Docker Build & Push') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        docker build -t mathan2904/simple-web-app:latest .
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        docker push mathan2904/simple-web-app:latest
-                    """
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'docker-hub',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+
+                        sh """
+                            echo "Building Docker Image..."
+                            docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+
+                            echo "Logging in to Docker Hub..."
+                            echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                            echo "Pushing image to Docker Hub..."
+                            docker push ${IMAGE_NAME}:${IMAGE_TAG}
+                        """
+                    }
                 }
             }
         }
