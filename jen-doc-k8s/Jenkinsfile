@@ -1,57 +1,30 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub')
-        IMAGE_NAME = "mathan2904/simple-web-app"
-        IMAGE_TAG = "latest"
-    }
-
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Docker Build & Push') {
             steps {
-                powershell """
-                    docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                """
-            }
-        }
-
-        stage('Docker Login') {
-    steps {
-        powershell """
-            echo "${DOCKERHUB_CREDENTIALS_PSW}" | docker login -u "${DOCKERHUB_CREDENTIALS_USR}" --password-stdin
-        """
-    }
-}
-
-
-        stage('Push Docker Image') {
-            steps {
-                powershell """
-                    docker push ${IMAGE_NAME}:${IMAGE_TAG}
-                """
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                powershell """
-                    kubectl apply -f k8s-deployment.yaml
-                """
+                withCredentials([usernamePassword(credentialsId: 'docker-hub', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        docker build -t mathan2904/simple-web-app:latest .
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker push mathan2904/simple-web-app:latest
+                    """
+                }
             }
         }
     }
 
     post {
         always {
-            powershell "docker system prune -f"
+            echo "Pipeline Completed"
         }
     }
 }
