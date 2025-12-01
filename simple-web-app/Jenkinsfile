@@ -40,9 +40,16 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            bat "docker system prune -f"
+     post {
+        success {
+            mail to: "mathankumar29042004@gmail.com",
+                 subject: "Build Success",
+                 body: "The build was successful."
+        }
+        failure {
+            mail to: "mathankumar29042004@gmail.com",
+                 subject: "Build Failed",
+                 body: "The build failed. Check logs."
         }
     }
 }
