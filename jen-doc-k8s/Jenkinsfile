@@ -27,8 +27,6 @@ pipeline {
         stage('Docker Login') {
             steps {
                 powershell """
-                    \$Password = '${DOCKERHUB_CREDENTIALS_PSW}' | ConvertTo-SecureString -AsPlainText -Force
-                    \$Cred = New-Object System.Management.Automation.PSCredential ('${DOCKERHUB_CREDENTIALS_USR}', \$Password)
                     echo '${DOCKERHUB_CREDENTIALS_PSW}' | docker login -u ${DOCKERHUB_CREDENTIALS_USR} --password-stdin
                 """
             }
@@ -54,7 +52,9 @@ pipeline {
 
     post {
         always {
-            powershell "docker system prune -f"
+            script {
+                powershell "docker system prune -f"
+            }
         }
     }
 }
