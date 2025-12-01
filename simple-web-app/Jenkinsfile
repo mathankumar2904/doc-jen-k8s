@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub')
+        DOCKERHUB_CREDENTIALS = credentials('mathan2904')
         IMAGE_NAME = "mathan2904/simple-web-app"
         IMAGE_TAG = "latest"
         KUBE_CONFIG = "/home/jenkins/.kube/config"
