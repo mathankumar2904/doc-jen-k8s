@@ -52,7 +52,7 @@ pipeline {
 
     post {
         always {
-            script {
+            node {
                 powershell "docker system prune -f"
             }
         }
